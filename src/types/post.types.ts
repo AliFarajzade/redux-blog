@@ -3,4 +3,5 @@ export type TPost = {
     title: string
     body: string
     authorId: string
+    createdAt: string
 }
