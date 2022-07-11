@@ -1,17 +1,19 @@
 import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit'
-import { TPost } from '../../types/post.type'
+import { TPost } from '../../types/post.types'
 import { TRootState } from '../store'
 
-const initialState = [
+const initialState: TPost[] = [
     {
         id: '1',
         title: 'Learining React',
         body: 'React is a JavaScript library for building user interfaces.',
+        authorId: '1',
     },
     {
         id: '2',
         title: 'Learining Redux',
         body: 'Redux is a predictable state container for JavaScript apps.',
+        authorId: '2',
     },
 ]
 
@@ -23,11 +25,12 @@ const postsSlice = createSlice({
             reducer: (state, action: PayloadAction<TPost>) => {
                 state.unshift(action.payload)
             },
-            prepare: (title: string, body: string) => ({
+            prepare: (title: string, body: string, authorId: string) => ({
                 payload: {
                     title,
                     body,
                     id: nanoid(),
+                    authorId,
                 },
             }),
         },
