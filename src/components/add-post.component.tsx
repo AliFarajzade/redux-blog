@@ -1,25 +1,35 @@
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { addNewPost } from '../redux/slices/posts.slice'
+import { TRootState } from '../redux/store'
+import { TUser } from '../types/user.types'
 
 const AddPost: React.FC = () => {
     const [title, setTitle] = useState<string>('')
     const [body, setBody] = useState<string>('')
+    const [authorId, setAuthorId] = useState<string>('')
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
         setTitle(e.target.value)
     const handleBodyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
         setBody(e.target.value)
+    const handleChangeAuthor = (e: React.ChangeEvent<HTMLSelectElement>) =>
+        setAuthorId(e.target.value)
+
+    const users = useSelector<TRootState, TUser[]>(state => state.users)
 
     const dispatch = useDispatch()
 
-    const handleAddNewPost = () => {
-        if (!title && !body) return
+    const canPost = !(!title || !body || !authorId)
 
-        dispatch(addNewPost(title, body))
+    const handleAddNewPost = () => {
+        if (!canPost) return
+
+        dispatch(addNewPost(title, body, authorId))
 
         setTitle('')
         setBody('')
+        setAuthorId('')
     }
 
     return (
@@ -34,10 +44,19 @@ const AddPost: React.FC = () => {
                     value={title}
                     onChange={handleTitleChange}
                 />
-                {/* <label htmlFor="postAuthor">Author:</label> */}
-                {/* <select id="postAuthor"> */}
-                {/* <option value=""></option> */}
-                {/* </select> */}
+                <label htmlFor="postAuthor">Author:</label>
+                <select
+                    id="postAuthor"
+                    value={authorId}
+                    onChange={handleChangeAuthor}
+                >
+                    <option value=""></option>
+                    {users.map(user => (
+                        <option key={user.id} value={user.id}>
+                            {user.name}
+                        </option>
+                    ))}
+                </select>
                 <label htmlFor="postContent">Content:</label>
                 <textarea
                     id="postContent"
@@ -45,7 +64,11 @@ const AddPost: React.FC = () => {
                     value={body}
                     onChange={handleBodyChange}
                 />
-                <button onClick={handleAddNewPost} type="button">
+                <button
+                    disabled={!canPost}
+                    onClick={handleAddNewPost}
+                    type="button"
+                >
                     Save Post
                 </button>
             </form>
