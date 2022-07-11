@@ -8,12 +8,14 @@ const initialState: TPost[] = [
         title: 'Learining React',
         body: 'React is a JavaScript library for building user interfaces.',
         authorId: '1',
+        createdAt: '2022-07-10T08:01:47.876Z',
     },
     {
         id: '2',
         title: 'Learining Redux',
         body: 'Redux is a predictable state container for JavaScript apps.',
         authorId: '2',
+        createdAt: '2022-07-11T07:25:47.876Z',
     },
 ]
 
@@ -31,6 +33,7 @@ const postsSlice = createSlice({
                     body,
                     id: nanoid(),
                     authorId,
+                    createdAt: new Date().toISOString(),
                 },
             }),
         },
