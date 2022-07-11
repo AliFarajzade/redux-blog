@@ -4,6 +4,7 @@ import { selectAllPosts } from '../redux/slices/posts.slice'
 import { TRootState } from '../redux/store'
 import { TPost } from '../types/post.types'
 import PostAuthor from './post-author.component'
+import ReactionButtons from './reaction-buttons.component'
 
 const PostsList: React.FC = () => {
     const posts = useSelector<TRootState, TPost[]>(selectAllPosts)
@@ -23,6 +24,7 @@ const PostsList: React.FC = () => {
                         <span>{moment(post.createdAt).fromNow()}</span>
                     </p>
                     <p>{post.body}</p>
+                    <ReactionButtons post={post} />
                 </article>
             ))}
         </section>
