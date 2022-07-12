@@ -1,37 +1,26 @@
-import { createSlice, nanoid, PayloadAction } from '@reduxjs/toolkit'
+import {
+    createAsyncThunk,
+    createSlice,
+    nanoid,
+    PayloadAction,
+} from '@reduxjs/toolkit'
+import axios from 'axios'
 import { TPost } from '../../types/post.types'
+import { TRequestStatus } from '../../types/request.types'
 import { TRootState } from '../store'
 
-const initialState: TPost[] = [
-    {
-        id: '1',
-        title: 'Learining React',
-        body: 'React is a JavaScript library for building user interfaces.',
-        authorId: '1',
-        createdAt: '2022-07-10T08:01:47.876Z',
-        reactions: {
-            thumbsUp: 0,
-            wow: 0,
-            rocket: 0,
-            heart: 0,
-            coffee: 0,
-        },
-    },
-    {
-        id: '2',
-        title: 'Learining Redux',
-        body: 'Redux is a predictable state container for JavaScript apps.',
-        authorId: '2',
-        createdAt: '2022-07-11T07:25:47.876Z',
-        reactions: {
-            thumbsUp: 0,
-            wow: 0,
-            rocket: 0,
-            heart: 0,
-            coffee: 0,
-        },
-    },
-]
+const BASE_URL = 'https://jsonplaceholder.typicode.com/posts'
+
+const initialState = {
+    posts: [] as TPost[],
+    status: 'idle' as TRequestStatus,
+    error: null as null | any,
+}
+
+export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
+    const response = await axios.get(BASE_URL)
+    return response.data
+})
 
 const postsSlice = createSlice({
     name: 'postsSlice',
@@ -39,14 +28,14 @@ const postsSlice = createSlice({
     reducers: {
         addNewPost: {
             reducer: (state, action: PayloadAction<TPost>) => {
-                state.unshift(action.payload)
+                state.posts.unshift(action.payload)
             },
             prepare: (title: string, body: string, authorId: string) => ({
                 payload: {
                     title,
                     body,
                     id: nanoid(),
-                    authorId,
+                    userId: authorId,
                     createdAt: new Date().toISOString(),
                     reactions: {
                         thumbsUp: 0,
@@ -66,13 +55,50 @@ const postsSlice = createSlice({
             }>
         ) => {
             const { postId, reaction } = action.payload
-            const postToReact = state.find(post => post.id === postId)!
+            const postToReact = state.posts.find(post => post.id === postId)!
             postToReact.reactions[reaction]++
         },
     },
+    extraReducers: builder => {
+        builder
+            .addCase(fetchPosts.pending, state => {
+                state.status = 'loading'
+            })
+            .addCase(
+                fetchPosts.fulfilled,
+                (
+                    state,
+                    action: PayloadAction<
+                        Pick<TPost, 'body' | 'id' | 'title' | 'userId'>[]
+                    >
+                ) => {
+                    state.status = 'succeeded'
+                    const loadedPosts = action.payload.map(post => ({
+                        ...post,
+                        createdAt: new Date().toISOString(),
+                        reactions: {
+                            thumbsUp: 0,
+                            wow: 0,
+                            rocket: 0,
+                            heart: 0,
+                            coffee: 0,
+                        },
+                    }))
+
+                    console.log(loadedPosts)
+                    state.posts = state.posts.concat(loadedPosts)
+                }
+            )
+            .addCase(fetchPosts.rejected, (state, action) => {
+                state.status = 'failed'
+                state.error = action.error.message
+            })
+    },
 })
 
-export const selectAllPosts = (state: TRootState) => state.posts
+export const selectAllPosts = (state: TRootState) => state.posts.posts
+export const selectPostsStatus = (state: TRootState) => state.posts.status
+export const selectPostsError = (state: TRootState) => state.posts.error
 
 export const { addNewPost, addNewReaction } = postsSlice.actions
 export default postsSlice.reducer
