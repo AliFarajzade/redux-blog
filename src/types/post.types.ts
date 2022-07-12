@@ -4,7 +4,7 @@ export type TPost = {
     id: string
     title: string
     body: string
-    authorId: string
+    userId: string
     createdAt: string
     reactions: TReaction
 }
