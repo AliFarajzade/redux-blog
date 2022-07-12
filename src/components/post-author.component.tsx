@@ -10,9 +10,9 @@ interface IProps {
 const PostAuthor: React.FC<IProps> = ({ userId }) => {
     const users = useSelector<TRootState, TUser[]>(selectAllUsers)
 
-    const author = users.find(user => user.id === userId)!
+    const author = users.find(user => user.id === userId)
 
-    return <span>by {author.name}</span>
+    return <span>by {author?.name ?? 'Unknown'}</span>
 }
 
 export default PostAuthor
