@@ -1,7 +1,7 @@
 import { TReaction } from './reactions.types'
 
 export type TPost = {
-    id: string
+    id: number
     title: string
     body: string
     userId: string
