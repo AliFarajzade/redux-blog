@@ -4,13 +4,13 @@ import { TRootState } from '../redux/store'
 import { TUser } from '../types/user.types'
 
 interface IProps {
-    userId: string
+    userId: number
 }
 
 const PostAuthor: React.FC<IProps> = ({ userId }) => {
     const users = useSelector<TRootState, TUser[]>(selectAllUsers)
 
-    const author = users.find(user => user.id === userId)
+    const author = users.find(user => +user.id === userId)
 
     return <span>by {author?.name ?? 'Unknown'}</span>
 }
