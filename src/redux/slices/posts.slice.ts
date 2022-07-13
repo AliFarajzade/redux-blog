@@ -1,9 +1,4 @@
-import {
-    createAsyncThunk,
-    createSlice,
-    nanoid,
-    PayloadAction,
-} from '@reduxjs/toolkit'
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
 import axios from 'axios'
 import { TPost } from '../../types/post.types'
 import { TRequestStatus } from '../../types/request.types'
@@ -22,36 +17,23 @@ export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
     return response.data
 })
 
+export const createNewPost = createAsyncThunk(
+    'posts/createNewPost',
+    async (post: Omit<TPost, 'id'>) => {
+        const response = await axios.post(BASE_URL, post)
+        return response.data
+    }
+)
+
 const postsSlice = createSlice({
     name: 'postsSlice',
     initialState,
     reducers: {
-        addNewPost: {
-            reducer: (state, action: PayloadAction<TPost>) => {
-                state.posts.unshift(action.payload)
-            },
-            prepare: (title: string, body: string, authorId: string) => ({
-                payload: {
-                    title,
-                    body,
-                    id: nanoid(),
-                    userId: authorId,
-                    createdAt: new Date().toISOString(),
-                    reactions: {
-                        thumbsUp: 0,
-                        wow: 0,
-                        rocket: 0,
-                        heart: 0,
-                        coffee: 0,
-                    },
-                },
-            }),
-        },
         addNewReaction: (
             state,
             action: PayloadAction<{
                 reaction: 'wow' | 'rocket' | 'thumbsUp' | 'coffee' | 'heart'
-                postId: string
+                postId: number
             }>
         ) => {
             const { postId, reaction } = action.payload
@@ -93,6 +75,14 @@ const postsSlice = createSlice({
                 state.status = 'failed'
                 state.error = action.error.message
             })
+            .addCase(
+                createNewPost.fulfilled,
+                (state, action: PayloadAction<TPost>) => {
+                    action.payload.userId = +action.payload.userId
+                    console.log(action.payload)
+                    state.posts.unshift(action.payload)
+                }
+            )
     },
 })
 
@@ -100,5 +90,5 @@ export const selectAllPosts = (state: TRootState) => state.posts.posts
 export const selectPostsStatus = (state: TRootState) => state.posts.status
 export const selectPostsError = (state: TRootState) => state.posts.error
 
-export const { addNewPost, addNewReaction } = postsSlice.actions
+export const { addNewReaction } = postsSlice.actions
 export default postsSlice.reducer
