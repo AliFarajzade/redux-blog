@@ -33,6 +33,15 @@ export const updatePost = createAsyncThunk(
     }
 )
 
+export const deletePost = createAsyncThunk(
+    'posts/deletePost',
+    async (postId: number) => {
+        const response = await axios.delete(`${BASE_URL}/${postId}`)
+        if (response.status === 200) return +postId
+        else return undefined
+    }
+)
+
 const postsSlice = createSlice({
     name: 'postsSlice',
     initialState,
@@ -45,8 +54,12 @@ const postsSlice = createSlice({
             }>
         ) => {
             const { postId, reaction } = action.payload
-            const postToReact = state.posts.find(post => post.id === postId)!
-            postToReact.reactions[reaction]++
+
+            console.log(state.posts)
+
+            const postToReact = state.posts.find(post => +post.id === +postId)
+
+            if (postToReact) postToReact.reactions[reaction]++
         },
     },
     extraReducers: builder => {
@@ -108,6 +121,18 @@ const postsSlice = createSlice({
                     state.posts = state.posts.filter(post => post.id !== id)
 
                     state.posts.unshift(updatedPost)
+                }
+            )
+            .addCase(
+                deletePost.fulfilled,
+                (state, action: PayloadAction<number | undefined>) => {
+                    if (!action.payload) {
+                        console.log("Couldn't delete post")
+                        return
+                    }
+                    state.posts = state.posts.filter(
+                        post => post.id !== action.payload
+                    )
                 }
             )
     },
