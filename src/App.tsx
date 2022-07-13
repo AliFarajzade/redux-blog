@@ -4,8 +4,8 @@ import PostsList from './components/posts-list.component'
 const App: React.FC = () => {
     return (
         <main className="App">
-            <PostsList />
             <AddPost />
+            <PostsList />
         </main>
     )
 }
