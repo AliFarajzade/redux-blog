@@ -90,5 +90,8 @@ export const selectAllPosts = (state: TRootState) => state.posts.posts
 export const selectPostsStatus = (state: TRootState) => state.posts.status
 export const selectPostsError = (state: TRootState) => state.posts.error
 
+export const selectPostById = (state: TRootState, postId: number) =>
+    state.posts.posts.find(({ id }) => id === postId)
+
 export const { addNewReaction } = postsSlice.actions
 export default postsSlice.reducer
