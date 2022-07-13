@@ -25,6 +25,14 @@ export const createNewPost = createAsyncThunk(
     }
 )
 
+export const updatePost = createAsyncThunk(
+    'posts/updatePost',
+    async (post: Omit<TPost, 'createdAt'>) => {
+        const response = await axios.patch(`${BASE_URL}/${post.id}`, post)
+        return response.data
+    }
+)
+
 const postsSlice = createSlice({
     name: 'postsSlice',
     initialState,
@@ -67,7 +75,6 @@ const postsSlice = createSlice({
                         },
                     }))
 
-                    console.log(loadedPosts)
                     state.posts = state.posts.concat(loadedPosts)
                 }
             )
@@ -79,8 +86,28 @@ const postsSlice = createSlice({
                 createNewPost.fulfilled,
                 (state, action: PayloadAction<TPost>) => {
                     action.payload.userId = +action.payload.userId
-                    console.log(action.payload)
                     state.posts.unshift(action.payload)
+                }
+            )
+            .addCase(
+                updatePost.fulfilled,
+                (
+                    state,
+                    action: PayloadAction<Omit<TPost, 'createdAt'> | undefined>
+                ) => {
+                    if (!action.payload?.id) {
+                        console.log("Couldn't update post")
+                        return
+                    }
+                    const { id } = action.payload
+                    const updatedPost = {
+                        ...action.payload,
+                        createdAt: new Date().toISOString(),
+                    } as TPost
+
+                    state.posts = state.posts.filter(post => post.id !== id)
+
+                    state.posts.unshift(updatedPost)
                 }
             )
     },
