@@ -1,7 +1,11 @@
 import { ChangeEvent, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useNavigate, useParams } from 'react-router-dom'
-import { selectPostById, updatePost } from '../redux/slices/posts.slice'
+import {
+    deletePost,
+    selectPostById,
+    updatePost,
+} from '../redux/slices/posts.slice'
 
 import { selectAllUsers } from '../redux/slices/users.slice'
 import { TRootState } from '../redux/store'
@@ -75,21 +79,21 @@ const EditPostForm = () => {
         </option>
     ))
 
-    // const onDeletePostClicked = () => {
-    //     try {
-    //         setRequestStatus('pending')
-    //         dispatch(deletePost({ id: post.id })).unwrap()
+    const onDeletePostClicked = () => {
+        try {
+            setRequestStatus('pending')
+            dispatch(deletePost(+postId!)).unwrap()
 
-    //         setTitle('')
-    //         setContent('')
-    //         setUserId('')
-    //         navigate('/')
-    //     } catch (err) {
-    //         console.error('Failed to delete the post', err)
-    //     } finally {
-    //         setRequestStatus('idle')
-    //     }
-    // }
+            setTitle('')
+            setContent('')
+            setUserId(0)
+            navigate('/')
+        } catch (err) {
+            console.error('Failed to delete the post', err)
+        } finally {
+            setRequestStatus('idle')
+        }
+    }
 
     return (
         <section>
@@ -129,7 +133,7 @@ const EditPostForm = () => {
                 <button
                     className="deleteButton"
                     type="button"
-                    // onClick={onDeletePostClicked}
+                    onClick={onDeletePostClicked}
                 >
                     Delete Post
                 </button>
