@@ -1,8 +1,6 @@
 import { nanoid } from '@reduxjs/toolkit'
-import { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import {
-    fetchPosts,
     selectAllPosts,
     selectPostsError,
     selectPostsStatus,
@@ -13,17 +11,11 @@ import { TRequestStatus } from '../types/request.types'
 import PostExcerpt from './post-excerpt.component'
 
 const PostsList: React.FC = () => {
-    const dispatch = useDispatch<any>()
-
     const posts = useSelector<TRootState, TPost[]>(selectAllPosts)
     const postsStatus = useSelector<TRootState, TRequestStatus>(
         selectPostsStatus
     )
     const postsError = useSelector<TRootState, any>(selectPostsError)
-
-    useEffect(() => {
-        if (postsStatus === 'idle') dispatch(fetchPosts())
-    }, [postsStatus, dispatch])
 
     const orderedPosts =
         postsStatus === 'succeeded' &&
