@@ -15,6 +15,7 @@ const PostExcerpt: React.FC<IProps> = ({ post, isPostPage }) => (
         <p className="excerpt">{post.body}</p>
         <p className="postCredit">
             {!isPostPage && <Link to={`/post/${post.id}`}>Post Page</Link>}
+            <Link to={`/post/edit/${post.id}`}>Edit Page</Link>
             <PostAuthor userId={post.userId} />
             <span>{moment(post.createdAt).fromNow()}</span>
         </p>
