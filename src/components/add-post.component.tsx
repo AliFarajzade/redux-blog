@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addNewPost } from '../redux/slices/posts.slice'
+import { createNewPost } from '../redux/slices/posts.slice'
 import { TRootState } from '../redux/store'
 import { TUser } from '../types/user.types'
 
@@ -8,6 +8,9 @@ const AddPost: React.FC = () => {
     const [title, setTitle] = useState<string>('')
     const [body, setBody] = useState<string>('')
     const [authorId, setAuthorId] = useState<string>('')
+    const [createPostStatus, setCreatePostStatus] = useState<
+        'pending' | 'idle'
+    >('idle')
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
         setTitle(e.target.value)
@@ -18,18 +21,40 @@ const AddPost: React.FC = () => {
 
     const users = useSelector<TRootState, TUser[]>(state => state.users)
 
-    const dispatch = useDispatch()
+    const dispatch = useDispatch<any>()
 
-    const canPost = !(!title || !body || !authorId)
+    const canPost =
+        !(!title || !body || !authorId) && createPostStatus === 'idle'
 
-    const handleAddNewPost = () => {
+    const handleAddNewPost = async () => {
         if (!canPost) return
 
-        dispatch(addNewPost(title, body, authorId))
+        try {
+            setCreatePostStatus('pending')
+            dispatch(
+                createNewPost({
+                    body,
+                    title,
+                    createdAt: new Date().toISOString(),
+                    userId: +authorId,
+                    reactions: {
+                        coffee: 0,
+                        heart: 0,
+                        rocket: 0,
+                        thumbsUp: 0,
+                        wow: 0,
+                    },
+                })
+            ).unwrap()
 
-        setTitle('')
-        setBody('')
-        setAuthorId('')
+            setTitle('')
+            setAuthorId('')
+            setBody('')
+        } catch (error) {
+            console.log(error)
+        } finally {
+            setCreatePostStatus('idle')
+        }
     }
 
     return (
