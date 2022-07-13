@@ -19,7 +19,7 @@ const ReactionButtons: React.FC<IProps> = ({ post }) => {
 
     const handleAddNewReaction = (
         reaction: 'wow' | 'rocket' | 'thumbsUp' | 'coffee' | 'heart',
-        postId: string
+        postId: number
     ) => dispatch(addNewReaction({ postId, reaction }))
 
     return (
@@ -37,7 +37,7 @@ const ReactionButtons: React.FC<IProps> = ({ post }) => {
                                 | 'thumbsUp'
                                 | 'coffee'
                                 | 'heart',
-                            post.id
+                            +post.id
                         )
                     }
                 >
