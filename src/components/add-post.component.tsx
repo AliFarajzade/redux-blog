@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
 import { createNewPost } from '../redux/slices/posts.slice'
 import { TRootState } from '../redux/store'
 import { TUser } from '../types/user.types'
@@ -11,6 +12,8 @@ const AddPost: React.FC = () => {
     const [createPostStatus, setCreatePostStatus] = useState<
         'pending' | 'idle'
     >('idle')
+
+    const navigate = useNavigate()
 
     const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
         setTitle(e.target.value)
@@ -50,6 +53,7 @@ const AddPost: React.FC = () => {
             setTitle('')
             setAuthorId('')
             setBody('')
+            navigate('/')
         } catch (error) {
             console.log(error)
         } finally {
