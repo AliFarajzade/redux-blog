@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
+import { selectUsersPosts } from '../redux/slices/posts.slice'
 import { selectUserById } from '../redux/slices/users.slice'
 import { TRootState } from '../redux/store'
 import { TPost } from '../types/post.types'
@@ -11,10 +12,9 @@ const UserPage: React.FC = () => {
         selectUserById(state, +userId!)
     )
 
-    const usersPosts = useSelector<TRootState, TPost[]>(state => {
-        const allPosts = state.posts.posts
-        return allPosts.filter(post => +post.userId === +userId!)
-    })
+    const usersPosts = useSelector<TRootState, TPost[]>(state =>
+        selectUsersPosts(state, +userId!)
+    )
 
     return (
         <section>

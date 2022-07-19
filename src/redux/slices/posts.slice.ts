@@ -1,4 +1,10 @@
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit'
+import {
+    createAsyncThunk,
+    createEntityAdapter,
+    createSelector,
+    createSlice,
+    PayloadAction,
+} from '@reduxjs/toolkit'
 import axios from 'axios'
 import { TPost } from '../../types/post.types'
 import { TRequestStatus } from '../../types/request.types'
@@ -6,11 +12,15 @@ import { TRootState } from '../store'
 
 const BASE_URL = 'https://jsonplaceholder.typicode.com/posts'
 
-const initialState = {
-    posts: [] as TPost[],
+const postsAdapter = createEntityAdapter<TPost>({
+    sortComparer: (a: TPost, b: TPost) =>
+        b.createdAt.localeCompare(a.createdAt),
+})
+
+const initialState = postsAdapter.getInitialState({
     status: 'idle' as TRequestStatus,
     error: null as null | any,
-}
+})
 
 export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
     const response = await axios.get(BASE_URL)
@@ -55,13 +65,12 @@ const postsSlice = createSlice({
         ) => {
             const { postId, reaction } = action.payload
 
-            console.log(state.posts)
-
-            const postToReact = state.posts.find(post => +post.id === +postId)
+            const postToReact = state.entities[postId]
 
             if (postToReact) postToReact.reactions[reaction]++
         },
     },
+
     extraReducers: builder => {
         builder
             .addCase(fetchPosts.pending, state => {
@@ -88,7 +97,7 @@ const postsSlice = createSlice({
                         },
                     }))
 
-                    state.posts = state.posts.concat(loadedPosts)
+                    postsAdapter.upsertMany(state, loadedPosts)
                 }
             )
             .addCase(fetchPosts.rejected, (state, action) => {
@@ -99,7 +108,7 @@ const postsSlice = createSlice({
                 createNewPost.fulfilled,
                 (state, action: PayloadAction<TPost>) => {
                     action.payload.userId = +action.payload.userId
-                    state.posts.unshift(action.payload)
+                    postsAdapter.addOne(state, action.payload)
                 }
             )
             .addCase(
@@ -112,15 +121,12 @@ const postsSlice = createSlice({
                         console.log("Couldn't update post")
                         return
                     }
-                    const { id } = action.payload
                     const updatedPost = {
                         ...action.payload,
                         createdAt: new Date().toISOString(),
                     } as TPost
 
-                    state.posts = state.posts.filter(post => post.id !== id)
-
-                    state.posts.unshift(updatedPost)
+                    postsAdapter.upsertOne(state, updatedPost)
                 }
             )
             .addCase(
@@ -130,20 +136,25 @@ const postsSlice = createSlice({
                         console.log("Couldn't delete post")
                         return
                     }
-                    state.posts = state.posts.filter(
-                        post => post.id !== action.payload
-                    )
+                    postsAdapter.removeOne(state, action.payload)
                 }
             )
     },
 })
 
-export const selectAllPosts = (state: TRootState) => state.posts.posts
+export const {
+    selectAll: selectAllPosts,
+    selectIds: selectPostIds,
+    selectById: selectPostById,
+} = postsAdapter.getSelectors((state: TRootState) => state.posts)
+
 export const selectPostsStatus = (state: TRootState) => state.posts.status
 export const selectPostsError = (state: TRootState) => state.posts.error
 
-export const selectPostById = (state: TRootState, postId: number) =>
-    state.posts.posts.find(({ id }) => id === postId)
+export const selectUsersPosts = createSelector(
+    [selectAllPosts, (_state: TRootState, userId: number) => userId],
+    (posts, userId) => posts.filter(post => post.userId === userId)
+)
 
 export const { addNewReaction } = postsSlice.actions
 export default postsSlice.reducer
