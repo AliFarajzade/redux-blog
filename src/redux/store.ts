@@ -1,8 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux'
+import postsReducer from './posts/post.slice'
+import usersReducer from './users/user.slice'
 
 const store = configureStore({
-    reducer: {},
+    reducer: {
+        posts: postsReducer,
+        users: usersReducer,
+    },
 })
 
 // Getting store type
