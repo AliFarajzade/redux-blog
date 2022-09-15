@@ -1,24 +1,16 @@
 import { nanoid } from '@reduxjs/toolkit'
-import { useEffect } from 'react'
 import {
-    fetchAllPosts,
     selectAllPosts,
     selectPostsError,
     selectPostsStatus,
 } from '../redux/posts/post.slice'
-import { useAppDispatch, useAppSelector } from '../redux/store'
+import { useAppSelector } from '../redux/store'
 import PostCard from './post-card.component'
 
 const PostsList: React.FC = () => {
     const posts = useAppSelector(selectAllPosts)
     const postsStatus = useAppSelector(selectPostsStatus)
     const postsError = useAppSelector(selectPostsError)
-
-    const dispatch = useAppDispatch()
-
-    useEffect(() => {
-        if (postsStatus === 'idle') dispatch(fetchAllPosts())
-    }, [postsStatus, dispatch])
 
     let content
 

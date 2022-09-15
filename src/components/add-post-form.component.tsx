@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { addNewPost } from '../redux/posts/post.slice'
 import { useAppDispatch, useAppSelector } from '../redux/store'
 import { selectAllUsers } from '../redux/users/user.slice'
@@ -12,6 +13,8 @@ const AddPostForm: React.FC = () => {
         'idle'
     )
 
+    const navigate = useNavigate()
+
     const dispatch = useAppDispatch()
     const users = useAppSelector(selectAllUsers)
 
@@ -24,16 +27,19 @@ const AddPostForm: React.FC = () => {
     const canSave =
         [title, content, userId].every(Boolean) && requestStatus === 'idle'
 
-    const onSavePostClicked = () => {
+    const onSavePostClicked = async () => {
         if (canSave) {
             try {
                 setRequestStatus('pending')
 
-                dispatch(addNewPost({ title, content, userId })).unwrap()
+                const createdPost = await dispatch(
+                    addNewPost({ title, content, userId })
+                ).unwrap()
 
                 setTitle('')
                 setContent('')
                 setUserId('')
+                navigate(`/post/${createdPost.id}`)
             } catch (error) {
                 console.log('Failed to save the post', error)
             } finally {

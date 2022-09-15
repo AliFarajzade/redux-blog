@@ -61,6 +61,22 @@ export const addNewPost = createAsyncThunk(
     }
 )
 
+export const updatePost = createAsyncThunk(
+    'posts/updatePost',
+    async (post: TPost) => {
+        const response = await axios.patch(`${API_URL}/${post.id}`, post)
+        return response.data as TPost
+    }
+)
+
+export const deletePost = createAsyncThunk(
+    'posts/deletePost',
+    async (postId: string) => {
+        await axios.delete(`${API_URL}/${postId}`)
+        return postId
+    }
+)
+
 const postSlice = createSlice({
     name: 'posts',
     initialState,
@@ -142,12 +158,29 @@ const postSlice = createSlice({
                     content: action.payload.body,
                 })
             })
+            .addCase(updatePost.fulfilled, (state, action) => {
+                const { id } = action.payload
+                action.payload.date = new Date().toISOString()
+
+                const posts = state.posts.filter(post => post.id !== id)
+                posts.push(action.payload)
+
+                state.posts = posts
+            })
+            .addCase(deletePost.fulfilled, (state, action) => {
+                const id = action.payload
+
+                const posts = state.posts.filter(post => post.id !== id)
+                state.posts = posts
+            })
     },
 })
 
 export const { reactToPost } = postSlice.actions
 
 export const selectAllPosts = (state: RootState) => state.posts.posts
+export const selectPostById = (state: RootState, postId: string) =>
+    state.posts.posts.find(({ id }) => id === postId)
 export const selectPostsStatus = (state: RootState) => state.posts.status
 export const selectPostsError = (state: RootState) => state.posts.error
 
