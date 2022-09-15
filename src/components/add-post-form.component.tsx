@@ -8,6 +8,10 @@ const AddPostForm: React.FC = () => {
     const [content, setContent] = useState<string>('')
     const [userId, setUserId] = useState<string>('')
 
+    const [requestStatus, setRequestStatus] = useState<'idle' | 'pending'>(
+        'idle'
+    )
+
     const dispatch = useAppDispatch()
     const users = useAppSelector(selectAllUsers)
 
@@ -17,13 +21,24 @@ const AddPostForm: React.FC = () => {
         </option>
     ))
 
-    const canSave = !!title && !!content && !!userId
+    const canSave =
+        [title, content, userId].every(Boolean) && requestStatus === 'idle'
 
     const onSavePostClicked = () => {
         if (canSave) {
-            dispatch(addNewPost(title, content, userId))
-            setTitle('')
-            setContent('')
+            try {
+                setRequestStatus('pending')
+
+                dispatch(addNewPost({ title, content, userId })).unwrap()
+
+                setTitle('')
+                setContent('')
+                setUserId('')
+            } catch (error) {
+                console.log('Failed to save the post', error)
+            } finally {
+                setRequestStatus('idle')
+            }
         }
     }
 

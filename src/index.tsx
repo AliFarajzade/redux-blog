@@ -4,8 +4,11 @@ import { Provider } from 'react-redux'
 import App from './App'
 import './index.css'
 import store from './redux/store'
+import { fetchAllUsers } from './redux/users/user.slice'
 import reportWebVitals from './reportWebVitals'
 import * as serviceWorkerRegistration from './serviceWorkerRegistration'
+
+store.dispatch(fetchAllUsers())
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement)
 root.render(
