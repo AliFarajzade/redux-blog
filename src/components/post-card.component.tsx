@@ -1,16 +1,20 @@
+import { EntityId } from '@reduxjs/toolkit'
 import { Link } from 'react-router-dom'
-import { TPost } from '../types/post.type'
+import { selectPostById } from '../redux/posts/post.slice'
+import { useAppSelector } from '../redux/store'
 import PostAuthor from './post-author.component'
 import PostDate from './post-date.component'
 import PostReactions from './post-reactions.component'
 
 interface IProps {
-    post: TPost
+    postId: EntityId
     isPostPage?: boolean
 }
 
-const PostCard: React.FC<IProps> = ({ post, isPostPage }) => {
-    return (
+const PostCard: React.FC<IProps> = ({ postId, isPostPage }) => {
+    const post = useAppSelector(state => selectPostById(state, postId))
+
+    return post ? (
         <article>
             <h3>{post.title}</h3>
             <p>
@@ -44,6 +48,10 @@ const PostCard: React.FC<IProps> = ({ post, isPostPage }) => {
             </p>
             <PostReactions postId={post.id} reactions={post.reactions} />
         </article>
+    ) : (
+        <section>
+            <h2>Post not found</h2>
+        </section>
     )
 }
 

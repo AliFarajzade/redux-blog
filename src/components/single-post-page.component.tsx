@@ -19,7 +19,7 @@ const SinglePostPage: React.FC = () => {
             </section>
         )
 
-    return <PostCard post={post} isPostPage />
+    return <PostCard postId={post.id} isPostPage />
 }
 
 export default SinglePostPage

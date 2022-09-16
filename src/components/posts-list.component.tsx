@@ -1,6 +1,6 @@
 import { nanoid } from '@reduxjs/toolkit'
 import {
-    selectAllPosts,
+    selectPostIds,
     selectPostsError,
     selectPostsStatus,
 } from '../redux/posts/post.slice'
@@ -8,7 +8,7 @@ import { useAppSelector } from '../redux/store'
 import PostCard from './post-card.component'
 
 const PostsList: React.FC = () => {
-    const posts = useAppSelector(selectAllPosts)
+    const postsIds = useAppSelector(selectPostIds)
     const postsStatus = useAppSelector(selectPostsStatus)
     const postsError = useAppSelector(selectPostsError)
 
@@ -16,12 +16,8 @@ const PostsList: React.FC = () => {
 
     if (postsStatus === 'loading') content = 'Loading...'
     if (postsStatus === 'succeeded') {
-        const sortedPosts = posts
-            .slice()
-            .sort((a, b) => b.date.localeCompare(a.date))
-
-        content = sortedPosts.map(post => (
-            <PostCard key={nanoid()} post={post} />
+        content = postsIds.map(postId => (
+            <PostCard key={nanoid()} postId={postId} />
         ))
     }
     if (postsStatus === 'failed')

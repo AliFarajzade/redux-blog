@@ -1,7 +1,8 @@
 import {
     createAsyncThunk,
+    createEntityAdapter,
+    createSelector,
     createSlice,
-    nanoid,
     PayloadAction,
 } from '@reduxjs/toolkit'
 import axios from 'axios'
@@ -12,16 +13,20 @@ import { RootState } from '../store'
 const API_URL = 'https://jsonplaceholder.typicode.com/posts'
 
 interface IPostsState {
-    posts: TPost[]
     status: 'idle' | 'loading' | 'failed' | 'succeeded'
     error: unknown | null
+    count: number
 }
 
-const initialState: IPostsState = {
-    posts: [],
+const postsAdapter = createEntityAdapter<TPost>({
+    sortComparer: (a, b) => b.date.localeCompare(a.date),
+})
+
+const initialState = postsAdapter.getInitialState<IPostsState>({
     status: 'idle', // idle | loading | failed | succeeded
     error: null,
-}
+    count: 0,
+})
 
 export const fetchAllPosts = createAsyncThunk(
     'posts/fetchAllPosts',
@@ -81,35 +86,17 @@ const postSlice = createSlice({
     name: 'posts',
     initialState,
     reducers: {
-        addNewPost: {
-            reducer: (state, action: PayloadAction<TPost>) => {
-                state.posts.push(action.payload)
-            },
-            prepare: (title: string, content: string, userId: string) => ({
-                payload: {
-                    title,
-                    content,
-                    id: nanoid(),
-                    userId,
-                    date: new Date().toISOString(),
-                    reactions: {
-                        coffee: 0,
-                        heart: 0,
-                        rocket: 0,
-                        thumbsUp: 0,
-                        wow: 0,
-                    },
-                },
-            }),
-        },
         reactToPost: (
             state,
             action: PayloadAction<{ postId: string; reaction: keyof TReaction }>
         ) => {
             const { postId, reaction } = action.payload
-            const postToReact = state.posts.find(post => post.id === postId)
+            const postToReact = state.entities[postId]
 
             if (postToReact) postToReact.reactions[reaction]++
+        },
+        increaseCount: state => {
+            state.count++
         },
     },
     extraReducers(builder) {
@@ -141,10 +128,10 @@ const postSlice = createSlice({
                         wow: 0,
                     },
                 })) as TPost[]
-                state.posts = state.posts.concat(loadedPosts)
+                postsAdapter.upsertMany(state, loadedPosts)
             })
             .addCase(addNewPost.fulfilled, (state, action) => {
-                state.posts.push({
+                postsAdapter.addOne(state, {
                     ...action.payload,
                     id: String(action.payload.id),
                     date: new Date().toISOString(),
@@ -159,29 +146,35 @@ const postSlice = createSlice({
                 })
             })
             .addCase(updatePost.fulfilled, (state, action) => {
-                const { id } = action.payload
                 action.payload.date = new Date().toISOString()
 
-                const posts = state.posts.filter(post => post.id !== id)
-                posts.push(action.payload)
-
-                state.posts = posts
+                postsAdapter.upsertOne(state, action.payload)
             })
             .addCase(deletePost.fulfilled, (state, action) => {
                 const id = action.payload
 
-                const posts = state.posts.filter(post => post.id !== id)
-                state.posts = posts
+                postsAdapter.removeOne(state, id)
             })
     },
 })
 
-export const { reactToPost } = postSlice.actions
+export const { reactToPost, increaseCount } = postSlice.actions
 
-export const selectAllPosts = (state: RootState) => state.posts.posts
-export const selectPostById = (state: RootState, postId: string) =>
-    state.posts.posts.find(({ id }) => id === postId)
+export const {
+    selectAll: selectAllPosts,
+    selectById: selectPostById,
+    selectIds: selectPostIds,
+} = postsAdapter.getSelectors((state: RootState) => state.posts)
+
 export const selectPostsStatus = (state: RootState) => state.posts.status
 export const selectPostsError = (state: RootState) => state.posts.error
+
+export const selectUsersPosts = createSelector(
+    [selectAllPosts, (_state: RootState, userId: string) => userId],
+    (posts: TPost[], userId: string) =>
+        posts.filter(post => post.userId === userId)
+)
+
+export const selectCount = (state: RootState) => state.posts.count
 
 export default postSlice.reducer
