@@ -1,5 +1,7 @@
+import TodoList from './components/todo-list.component'
+
 const App: React.FC = () => {
-    return null
+    return <TodoList />
 }
 
 export default App
